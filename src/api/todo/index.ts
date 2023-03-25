@@ -1,6 +1,7 @@
+import { DefineMethods } from "aspida";
 import { mockMethods } from "aspida-mock";
 
-export type Methods = {
+export type Methods = DefineMethods<{
   get: {
     status: 200;
     resBody: {
@@ -36,7 +37,7 @@ export type Methods = {
     status: 204;
     reqFormat: URLSearchParams;
   };
-};
+}>;
 
 export default mockMethods<Methods>({
   get: () => ({

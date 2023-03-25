@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { z } from "zod";
 import { Methods } from ".";
 
 let todoList = [
