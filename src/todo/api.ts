@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import { Methods } from ".";
 
 let todoList = [
   { id: "1", title: "Learning Hono", completed: false },
@@ -11,7 +12,7 @@ const todo = new Hono();
 todo.get("/", (c) => c.json(todoList));
 
 todo.post("/", async (c) => {
-  const param = await c.req.json<{ title: string }>();
+  const param = await c.req.json<Methods["post"]["reqBody"]>();
   const newTodo = {
     id: String(todoList.length + 1),
     completed: false,
@@ -28,10 +29,7 @@ todo.put("/:id", async (c) => {
   if (!todo) {
     return c.json({ message: "not found" }, 404);
   }
-  const param = (await c.req.parseBody()) as {
-    title?: string;
-    completed?: boolean;
-  };
+  const param = (await c.req.parseBody()) as Methods["put"]["reqBody"];
   todoList = todoList.map((todo) => {
     if (todo.id === id) {
       return {
