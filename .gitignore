@@ -133,3 +133,5 @@ src/$*.ts
 
 .dev.*vars
 !.dev.exmaple.vars
+
+.wrangler/

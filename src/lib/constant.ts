@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 type ENV = {
+  DB: D1Database;
   HOST_URL: string;
   CLIENT_ID: string;
   CLIENT_SECRET: string;

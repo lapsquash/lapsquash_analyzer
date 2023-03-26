@@ -57,25 +57,25 @@ async function requestUserInfo(accessToken: string): Promise<UserInfoResponse> {
   );
 }
 
-auth.post("/", zValidator("json", validator.post.reqBody), async (c) => {
+auth.post("/", zValidator("json", validator.post.reqBody), async (ctx) => {
   let tokenRequest: TokenResponse | undefined;
   let userInfo: UserInfoResponse | undefined;
 
   try {
-    tokenRequest = await requestTokens(c.env, c.req.valid("json").code);
+    tokenRequest = await requestTokens(ctx.env, ctx.req.valid("json").code);
     console.log({ tokenRequest });
     userInfo = await requestUserInfo(tokenRequest.access_token);
     console.log({ userInfo });
   } catch (err) {
     if (err instanceof ResponseNotOkError) {
       console.error(err);
-      return c.json(JSON.parse(err.message), 403);
+      return ctx.json(JSON.parse(err.message), 403);
     }
     if (err instanceof NetworkError) {
       console.error(err);
-      return c.json(JSON.parse(err.message), 500);
+      return ctx.json(JSON.parse(err.message), 500);
     }
-    return c.json({ message: "Unknown error", reason: String(err) }, 500);
+    return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
   }
 
   try {
@@ -84,19 +84,19 @@ auth.post("/", zValidator("json", validator.post.reqBody), async (c) => {
   } catch (err) {
     if (err instanceof ResponseNotOkError) {
       console.error(err);
-      return c.json(JSON.parse(err.message), 403);
+      return ctx.json(JSON.parse(err.message), 403);
     }
     if (err instanceof NetworkError) {
       console.error(err);
-      return c.json(JSON.parse(err.message), 500);
+      return ctx.json(JSON.parse(err.message), 500);
     }
-    return c.json({ message: "Unknown error", reason: String(err) }, 500);
+    return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
   }
 
-  const credential = await new Jwt(c.env).createJwt(userInfo.id);
+  const credential = await new Jwt(ctx.env).createJwt(userInfo.id);
   validator.post.resBody.parse({ credential });
 
-  return c.json({ credential }, 200);
+  return ctx.json({ credential }, 200);
 });
 
 export { auth };

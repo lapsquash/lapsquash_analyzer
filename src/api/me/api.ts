@@ -19,7 +19,7 @@ async function requestUserInfo(uuid: string) {
   );
 }
 
-me.get("/", async (c) => {
+me.get("/", async (ctx) => {
   console.log("me");
 
   try {
@@ -28,15 +28,15 @@ me.get("/", async (c) => {
   } catch (err) {
     if (err instanceof ResponseNotOkError) {
       console.error(err);
-      return c.json(JSON.parse(err.message), 403);
+      return ctx.json(JSON.parse(err.message), 403);
     }
     if (err instanceof NetworkError) {
       console.error(err);
-      return c.json(JSON.parse(err.message), 500);
+      return ctx.json(JSON.parse(err.message), 500);
     }
   }
 
-  return c.text("end");
+  return ctx.text("end");
 });
 
 export { me };

@@ -6,14 +6,14 @@ import { JwtPayload } from "lib/types/res_req";
 
 const app = createHono();
 
-app.get("/", (c) => c.text("Hello Hono!"));
+app.get("/", (ctx) => ctx.text("Hello Hono!"));
 app.route("/api/auth", auth);
-app.use("/api/*", async (c, next) => {
+app.use("/api/*", async (ctx, next) => {
   console.log("middleware");
 
-  const bearer = c.req.headers.get("Authorization")?.split(" ")[1];
+  const bearer = ctx.req.headers.get("Authorization")?.split(" ")[1];
   if (!bearer) {
-    return c.json(
+    return ctx.json(
       { message: "Unauthorized", reason: "Bearer token not found" },
       401,
     );
@@ -21,12 +21,12 @@ app.use("/api/*", async (c, next) => {
 
   let payload: JwtPayload | undefined;
   try {
-    payload = await new Jwt(c.env).decodeJwt(bearer);
+    payload = await new Jwt(ctx.env).decodeJwt(bearer);
   } catch (err) {
     if (err instanceof InvalidJwtError) {
-      return c.json(JSON.parse(err.message), 401);
+      return ctx.json(JSON.parse(err.message), 401);
     }
-    return c.json({ message: "Unknown error", reason: String(err) }, 500);
+    return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
   }
 
   console.log({ payload });

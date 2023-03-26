@@ -1,3 +1,8 @@
 name = "lapsquash_analyzer"
 main = "src/index.ts"
 compatibility_date = "2023-03-23"
+
+[[ d1_databases ]]
+binding = "DB"
+database_name = "lapsquash_analyzer_db"
+database_id = "a0497d20-49a4-497a-ac02-a75e43b020af"

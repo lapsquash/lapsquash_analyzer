@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "prepare": "bun run dev:aspida",
-    "dev": "wrangler dev src/index.ts --local",
+    "predev": "wrangler d1 execute lapsquash_analyzer_db --local --file=./db/schema.sql",
+    "dev": "wrangler dev src/index.ts --local --persist",
     "dev:aspida": "aspida && aspida-mock",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -28,7 +29,6 @@
     "@typescript-eslint/parser": "latest",
     "eslint": "latest",
     "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-jest": "latest",
-    "wrangler": "^2.7.1"
+    "eslint-plugin-jest": "latest"
   }
 }
