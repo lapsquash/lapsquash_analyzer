@@ -6,27 +6,18 @@ import {
   getApiEndpoint,
   NetworkError,
   ResponseNotOkError,
+  StoreError,
 } from "lib/constant";
 import { fetchRequest } from "lib/request";
-import { UserInfoResponse } from "lib/types/res_req";
+import {
+  TokenRequest,
+  TokenResponse,
+  UserInfoResponse,
+} from "lib/types/res_req";
 import { Jwt } from "lib/jwt";
-
-type TokenRequest = {
-  client_id: string;
-  scope: "https://graph.microsoft.com/.default";
-  code: string;
-  redirect_uri: string;
-  grant_type: "authorization_code";
-  client_secret: string;
-};
-
-type TokenResponse = {
-  token_type: "Bearer";
-  scope: string;
-  expires_in: number;
-  ext_expires_in: number;
-  access_token: string;
-};
+import { DBUsers } from "lib/types/db";
+import { customValidator } from "lib/types/validator";
+import { Store } from "lib/store";
 
 const auth = createHono();
 
@@ -35,7 +26,7 @@ async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
 
   const body: TokenRequest = {
     client_id: env.CLIENT_ID,
-    scope: "https://graph.microsoft.com/.default",
+    scope: "offline_access user.read Sites.ReadWrite.All",
     code: code,
     redirect_uri: "http://localhost:8787/callback",
     grant_type: "authorization_code",
@@ -78,23 +69,30 @@ auth.post("/", zValidator("json", validator.post.reqBody), async (ctx) => {
     return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
   }
 
+  const credential = await new Jwt(ctx.env).create(userInfo.id);
+  validator.post.resBody.parse({ credential });
+
+  const nowUnix = Math.floor(Date.now() / 1000);
+
+  const user: DBUsers = {
+    uuid: userInfo.id,
+    access_token: tokenRequest.access_token,
+    expires_at: nowUnix + tokenRequest.expires_in,
+    refresh_token: tokenRequest.refresh_token,
+  };
+
+  customValidator.db.users.parse(user);
+
   try {
-    userInfo = await requestUserInfo(tokenRequest.access_token);
-    console.log({ userInfo });
+    await new Store(ctx.env.DB, userInfo.id).putUser(user);
   } catch (err) {
-    if (err instanceof ResponseNotOkError) {
-      console.error(err);
-      return ctx.json(JSON.parse(err.message), 403);
-    }
-    if (err instanceof NetworkError) {
-      console.error(err);
-      return ctx.json(JSON.parse(err.message), 500);
+    if (err instanceof StoreError) {
+      return ctx.json(JSON.parse(err.message), {
+        status: err.status ?? 500,
+      });
     }
     return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
   }
-
-  const credential = await new Jwt(ctx.env).createJwt(userInfo.id);
-  validator.post.resBody.parse({ credential });
 
   return ctx.json({ credential }, 200);
 });

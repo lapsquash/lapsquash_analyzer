@@ -1,4 +1,5 @@
 import { NetworkError, ResponseNotOkError } from "./constant";
+import { Store } from "./store";
 
 type FetchArgs = Parameters<typeof fetch>;
 
@@ -18,20 +19,12 @@ async function fetchRequest<T>(
   return (await res.json()) as T;
 }
 
-function uuid2credential(bearer: string): string {
-  const credential = bearer.split(" ")[1];
-  if (credential === undefined) {
-    throw new Error("Credential is undefined");
-  }
-  return "123";
-}
-
-async function fetchRequestFromUuid<T>(
-  uuid: string,
+async function fetchRequestFromUuid(
+  store: Store,
   fetchArg: FetchArgs,
   errMessage: string,
-): Promise<T> | never {
-  const accessToken = uuid2credential(uuid);
+): Promise<Response> | never {
+  const accessToken = (await store.getUserData()).access_token;
 
   if (fetchArg[1] === undefined) {
     fetchArg[1] = {};
@@ -51,7 +44,7 @@ async function fetchRequestFromUuid<T>(
     throw new ResponseNotOkError(errMessage, await res.json());
   }
 
-  return (await res.text()) as T;
+  return res;
 }
 
 export { fetchRequest, fetchRequestFromUuid };

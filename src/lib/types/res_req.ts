@@ -3,7 +3,7 @@ import { customValidator } from "./validator";
 
 type TokenRequest = {
   client_id: string;
-  scope: "https://graph.microsoft.com/.default";
+  scope: "offline_access user.read Sites.ReadWrite.All";
   code: string;
   redirect_uri: string;
   grant_type: "authorization_code";
@@ -16,6 +16,7 @@ type TokenResponse = {
   expires_in: number;
   ext_expires_in: number;
   access_token: string;
+  refresh_token: string;
 };
 
 type UserInfoResponse = {

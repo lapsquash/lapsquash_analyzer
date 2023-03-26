@@ -17,7 +17,7 @@ INSERT INTO
   )
 VALUES
   (
-    '1679839039',
+    'XXXXXXXX-XXXX-4XXX-xXXX-XXXXXXXXXXXX',
     'access_token',
     1679842639,
     'refresh_token'

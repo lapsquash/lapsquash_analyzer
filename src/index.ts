@@ -21,7 +21,7 @@ app.use("/api/*", async (ctx, next) => {
 
   let payload: JwtPayload | undefined;
   try {
-    payload = await new Jwt(ctx.env).decodeJwt(bearer);
+    payload = await new Jwt(ctx.env).decode(bearer);
   } catch (err) {
     if (err instanceof InvalidJwtError) {
       return ctx.json(JSON.parse(err.message), 401);

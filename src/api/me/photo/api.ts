@@ -7,36 +7,33 @@ import {
 import { Jwt } from "lib/jwt";
 import { fetchRequestFromUuid } from "lib/request";
 import { Store } from "lib/store";
-import { UserInfoResponse } from "lib/types/res_req";
-import { photo } from "./photo/api";
 
-const me = createHono();
+const photo = createHono();
 
-async function requestUserInfo(
+async function requestUserPhoto(
   db: D1Database,
   uuid: string,
-): Promise<UserInfoResponse> {
-  const userInfoEndpoint = getApiEndpoint("/me");
+): Promise<ArrayBuffer> {
+  const userInfoEndpoint = getApiEndpoint("/me/photo/$value");
 
   const response = await fetchRequestFromUuid(
     new Store(db, uuid),
     [userInfoEndpoint],
-    "User info request failed",
+    "User photo request failed",
   );
 
-  return await response.json();
+  return await response.arrayBuffer();
 }
 
-me.get("/", async (ctx) => {
+photo.get("/", async (ctx) => {
   console.log("me");
 
   const bearer = ctx.req.headers.get("Authorization")?.split(" ")[1];
   const uuid = await new Jwt(ctx.env).toUuid(bearer ?? "");
 
-  let userInfo: UserInfoResponse | undefined;
+  let photo: ArrayBuffer | undefined;
   try {
-    userInfo = await requestUserInfo(ctx.env.DB, uuid);
-    console.log({ userInfo });
+    photo = await requestUserPhoto(ctx.env.DB, uuid);
   } catch (err) {
     if (err instanceof ResponseNotOkError) {
       console.error(err);
@@ -48,9 +45,7 @@ me.get("/", async (ctx) => {
     }
   }
 
-  return ctx.json(userInfo);
+  return ctx.body(photo ?? new ArrayBuffer(0));
 });
 
-me.route("/photo", photo);
-
-export { me };
+export { photo };
