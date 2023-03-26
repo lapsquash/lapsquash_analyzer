@@ -3,30 +3,30 @@ import { mockMethods } from "aspida-mock";
 import { z } from "zod";
 
 const validator = {
-  post: {
-    reqBody: z.object({
-      code: z.string(),
-    }),
+  get: {
     resBody: z.object({
-      credential: z.string(),
+      id: z.string(),
+      displayName: z.string(),
+      mail: z.string(),
     }),
   },
 };
 
 export type Methods = DefineMethods<{
-  post: {
+  get: {
     status: 200;
-    reqBody: z.infer<typeof validator["post"]["reqBody"]>;
-    resBody: z.infer<typeof validator["post"]["resBody"]>;
+    resBody: z.infer<typeof validator["get"]["resBody"]>;
   };
 }>;
 
 export default mockMethods<Methods>({
-  post: ({ reqBody }) => {
+  get: () => {
     return {
       status: 200,
       resBody: {
-        credential: reqBody.code,
+        id: "XXXXXXXX-XXXX-4XXX-xXXX-XXXXXXXXXXXX",
+        displayName: "hyodoshun",
+        mail: "hyodoshun@example.com",
       },
     };
   },
