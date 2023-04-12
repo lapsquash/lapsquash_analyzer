@@ -6,30 +6,31 @@ import {
 } from "lib/constant";
 import { Jwt } from "lib/jwt";
 import { fetchRequestFromUuid } from "lib/request";
+import { stateManager } from "lib/state";
 import { Store } from "lib/store";
-
-const photo = createHono();
 
 async function requestUserPhoto(
   db: D1Database,
-  uuid: string,
+  uuid: string
 ): Promise<ArrayBuffer> {
   const userInfoEndpoint = getApiEndpoint("/me/photo/$value");
 
   const response = await fetchRequestFromUuid(
     new Store(db, uuid),
     [userInfoEndpoint],
-    "User photo request failed",
+    "User photo request failed"
   );
 
   return await response.arrayBuffer();
 }
 
-photo.get("/", async (ctx) => {
+const photo = createHono().get("/", async (ctx) => {
   console.log("me");
 
-  const bearer = ctx.req.headers.get("Authorization")?.split(" ")[1];
-  const uuid = await new Jwt(ctx.env).toUuid(bearer ?? "");
+  const uuid = stateManager.get().uuid;
+  if (!uuid) {
+    return ctx.json({ error: "no uuid" }, 403);
+  }
 
   let photo: ArrayBuffer | undefined;
   try {

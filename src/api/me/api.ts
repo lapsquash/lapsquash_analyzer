@@ -9,29 +9,30 @@ import { fetchRequestFromUuid } from "lib/request";
 import { Store } from "lib/store";
 import { UserInfoResponse } from "lib/types/res_req";
 import { photo } from "./photo/api";
-
-const me = createHono();
+import { stateManager } from "lib/state";
 
 async function requestUserInfo(
   db: D1Database,
-  uuid: string,
+  uuid: string
 ): Promise<UserInfoResponse> {
   const userInfoEndpoint = getApiEndpoint("/me");
 
   const response = await fetchRequestFromUuid(
     new Store(db, uuid),
     [userInfoEndpoint],
-    "User info request failed",
+    "User info request failed"
   );
 
   return await response.json();
 }
 
-me.get("/", async (ctx) => {
+const me = createHono().get("/", async (ctx) => {
   console.log("me");
 
-  const bearer = ctx.req.headers.get("Authorization")?.split(" ")[1];
-  const uuid = await new Jwt(ctx.env).toUuid(bearer ?? "");
+  const uuid = stateManager.get().uuid;
+  if (!uuid) {
+    return ctx.json({ error: "no uuid" }, 403);
+  }
 
   let userInfo: UserInfoResponse | undefined;
   try {
@@ -48,7 +49,11 @@ me.get("/", async (ctx) => {
     }
   }
 
-  return ctx.json(userInfo);
+  if (!userInfo) {
+    return ctx.json({ error: "no user info" }, 403);
+  }
+
+  return ctx.jsonT(userInfo);
 });
 
 me.route("/photo", photo);
