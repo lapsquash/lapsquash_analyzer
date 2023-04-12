@@ -25,14 +25,23 @@ async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
   const body: TokenRequest = {
     client_id: env.CLIENT_ID,
     scope: "offline_access user.read Sites.ReadWrite.All",
-    code: code,
+    code,
     redirect_uri: "http://localhost:8787/callback",
     grant_type: "authorization_code",
     client_secret: env.CLIENT_SECRET,
   };
 
   return await fetchRequest<TokenResponse>(
-    [tokenEndpoint, { method: "POST", body: new URLSearchParams(body) }],
+    [
+      tokenEndpoint,
+      {
+        method: "POST",
+        body: new URLSearchParams(body),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      },
+    ],
     "Token request failed"
   );
 }
@@ -65,18 +74,15 @@ const auth = createHono().post(
       console.log({ userInfo });
     } catch (err) {
       if (err instanceof ResponseNotOkError) {
-        console.error(err);
-        return ctx.json(JSON.parse(err.message), 403);
+        return ctx.json(JSON.parse(err.message), 400);
       }
       if (err instanceof NetworkError) {
-        console.error(err);
         return ctx.json(JSON.parse(err.message), 500);
       }
       return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
     }
 
     const credential = await new Jwt(ctx.env).create(userInfo.id);
-
     const nowUnix = Math.floor(Date.now() / 1000);
 
     const user: DBUsers = {

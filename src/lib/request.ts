@@ -5,7 +5,7 @@ type FetchArgs = Parameters<typeof fetch>;
 
 async function fetchRequest<T>(
   fetchArg: FetchArgs,
-  errMessage: string,
+  errMessage: string
 ): Promise<T> | never {
   const res = await fetch(...fetchArg).catch((err) => {
     throw new NetworkError(err);
@@ -22,7 +22,7 @@ async function fetchRequest<T>(
 async function fetchRequestFromUuid(
   store: Store,
   fetchArg: FetchArgs,
-  errMessage: string,
+  errMessage: string
 ): Promise<Response> | never {
   const accessToken = (await store.getUserData()).access_token;
 
