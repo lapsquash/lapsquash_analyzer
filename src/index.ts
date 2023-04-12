@@ -1,6 +1,6 @@
-import { auth } from "./api/auth/api";
+import { auth } from "./api/auth";
 import { createHono, InvalidJwtError } from "./lib/constant";
-import { me } from "api/me/api";
+import { me } from "api/me";
 import { Jwt } from "lib/jwt";
 import { stateManager } from "lib/state";
 import { JwtPayload } from "lib/types/res_req";

@@ -4,11 +4,10 @@ import {
   NetworkError,
   ResponseNotOkError,
 } from "lib/constant";
-import { Jwt } from "lib/jwt";
 import { fetchRequestFromUuid } from "lib/request";
 import { Store } from "lib/store";
 import { UserInfoResponse } from "lib/types/res_req";
-import { photo } from "./photo/api";
+import { photo } from "./photo";
 import { stateManager } from "lib/state";
 
 async function requestUserInfo(
