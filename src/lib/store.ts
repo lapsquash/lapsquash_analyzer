@@ -8,13 +8,13 @@ export class Store {
     let existsResult: D1Result | undefined;
     try {
       existsResult = await this.db
-        .prepare("SELECT * FROM users WHERE uuid = ?")
+        .prepare("SELECT * FROM user_credential WHERE uuid = ?")
         .bind(uuid)
         .first();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       throw new StoreError(
-        JSON.stringify({ summary: err.message, detail: err.cause.message }),
+        JSON.stringify({ summary: err.message, detail: err.cause.message })
       );
     }
 
@@ -34,14 +34,14 @@ export class Store {
     try {
       insertResult = await this.db
         .prepare(
-          "REPLACE INTO users (uuid, access_token, expires_at, refresh_token) VALUES (?, ?, ?, ?)",
+          "REPLACE INTO user_credential (uuid, access_token, expires_at, refresh_token) VALUES (?, ?, ?, ?)"
         )
         .bind(user.uuid, user.access_token, user.expires_at, user.refresh_token)
         .run();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       throw new StoreError(
-        JSON.stringify({ summary: err.message, detail: err.cause.message }),
+        JSON.stringify({ summary: err.message, detail: err.cause.message })
       );
     }
 
@@ -54,13 +54,13 @@ export class Store {
     let userResult: DBUsers | undefined;
     try {
       userResult = await this.db
-        .prepare("SELECT * FROM users WHERE uuid = ?")
+        .prepare("SELECT * FROM user_credential WHERE uuid = ?")
         .bind(this.uuid)
         .first();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       throw new StoreError(
-        JSON.stringify({ summary: err.message, detail: err.cause.message }),
+        JSON.stringify({ summary: err.message, detail: err.cause.message })
       );
     }
 

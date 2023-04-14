@@ -92,7 +92,7 @@ const auth = createHono().post(
       refresh_token: tokenRequest.refresh_token,
     };
 
-    customValidator.db.users.parse(user);
+    customValidator.db.user_credential.parse(user);
 
     try {
       await new Store(ctx.env.DB, userInfo.id).putUser(user);

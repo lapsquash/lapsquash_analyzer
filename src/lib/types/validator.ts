@@ -8,7 +8,7 @@ const customValidator = {
     exp: z.number(),
   }),
   db: {
-    users: z.object({
+    user_credential: z.object({
       uuid: z.string(),
       access_token: z.string(),
       expires_at: z.number(),
