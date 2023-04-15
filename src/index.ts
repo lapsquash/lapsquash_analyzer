@@ -1,43 +1,22 @@
-import { auth } from "./api/auth";
-import { createHono, InvalidJwtError } from "./lib/constant";
-import { me } from "api/me";
-import { Jwt } from "lib/jwt";
+import { trpcServer } from "@hono/trpc-server";
+import { createHono } from "lib/constant";
+import { createContext } from "lib/context";
 import { stateManager } from "lib/state";
-import { JwtPayload } from "lib/types/res_req";
+import { appRouter } from "trpc";
 
-const app = createHono()
-  .get("/", (ctx) => ctx.text("Hello Hono!"))
-  .route("/api/auth", auth)
-  .use("/api/*", async (ctx, next) => {
-    console.log("middleware");
+const app = createHono();
 
-    const bearer = ctx.req.headers.get("Authorization")?.split(" ")[1];
-    if (!bearer) {
-      return ctx.json(
-        { message: "Unauthorized", reason: "Bearer token not found" },
-        401
-      );
-    }
+app.use(async (ctx, next) => {
+  stateManager.set({ ...stateManager.get(), env: ctx.env });
+  await next();
+});
 
-    const jwt = new Jwt(ctx.env);
-
-    let payload: JwtPayload | undefined;
-    try {
-      payload = await jwt.decode(bearer);
-    } catch (err) {
-      if (err instanceof InvalidJwtError) {
-        return ctx.json(JSON.parse(err.message), 401);
-      }
-      return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
-    }
-
-    const uuid = await jwt.toUuid(bearer);
-    stateManager.set({ uuid });
-
-    console.log({ payload });
-    await next();
+app.use(
+  "/trpc/*",
+  trpcServer({
+    router: appRouter,
+    createContext,
   })
-  .route("/api/me", me);
+);
 
 export default app;
-export type AppType = typeof app;

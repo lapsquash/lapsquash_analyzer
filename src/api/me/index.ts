@@ -1,14 +1,10 @@
-import {
-  createHono,
-  getApiEndpoint,
-  NetworkError,
-  ResponseNotOkError,
-} from "lib/constant";
+import { getApiEndpoint, NetworkError, ResponseNotOkError } from "lib/constant";
 import { fetchRequestFromUuid } from "lib/request";
 import { Store } from "lib/store";
 import { UserInfoResponse } from "lib/types/res_req";
-import { photo } from "./photo";
 import { stateManager } from "lib/state";
+import { protectedProcedure, router } from "trpc";
+import { TRPCError } from "@trpc/server";
 
 async function requestUserInfo(
   db: D1Database,
@@ -25,36 +21,59 @@ async function requestUserInfo(
   return await response.json();
 }
 
-const me = createHono().get("/", async (ctx) => {
-  console.log("me");
+async function requestUserPhoto(
+  db: D1Database,
+  uuid: string
+): Promise<ArrayBuffer> {
+  const userInfoEndpoint = getApiEndpoint("/me/photo/$value");
 
-  const uuid = stateManager.get().uuid;
-  if (!uuid) {
-    return ctx.json({ error: "no uuid" }, 403);
-  }
+  const response = await fetchRequestFromUuid(
+    new Store(db, uuid),
+    [userInfoEndpoint],
+    "User photo request failed"
+  );
 
-  let userInfo: UserInfoResponse | undefined;
-  try {
-    userInfo = await requestUserInfo(ctx.env.DB, uuid);
-    console.log({ userInfo });
-  } catch (err) {
-    if (err instanceof ResponseNotOkError) {
-      console.error(err);
-      return ctx.json(JSON.parse(err.message), 403);
+  return await response.arrayBuffer();
+}
+
+export const me = router({
+  info: protectedProcedure.query(async (opts) => {
+    let userInfo: UserInfoResponse | undefined;
+    try {
+      userInfo = await requestUserInfo(opts.ctx.env.DB, opts.ctx.uuid);
+      console.log({ userInfo });
+    } catch (err) {
+      if (err instanceof ResponseNotOkError) {
+        console.error(err);
+      }
+      if (err instanceof NetworkError) {
+        console.error(err);
+      }
     }
-    if (err instanceof NetworkError) {
-      console.error(err);
-      return ctx.json(JSON.parse(err.message), 500);
+
+    if (!userInfo) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to get user info",
+      });
     }
-  }
 
-  if (!userInfo) {
-    return ctx.json({ error: "no user info" }, 403);
-  }
+    return { userInfo };
+  }),
 
-  return ctx.jsonT(userInfo);
+  photo: protectedProcedure.query(async (opts) => {
+    let photo: ArrayBuffer | undefined;
+    try {
+      photo = await requestUserPhoto(opts.ctx.env.DB, opts.ctx.uuid);
+    } catch (err) {
+      if (err instanceof ResponseNotOkError) {
+        console.error(err);
+      }
+      if (err instanceof NetworkError) {
+        console.error(err);
+      }
+    }
+
+    return photo ?? new ArrayBuffer(0);
+  }),
 });
-
-me.route("/photo", photo);
-
-export { me };

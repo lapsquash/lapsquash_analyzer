@@ -39,7 +39,7 @@ class InvalidJwtError extends Error {
       JSON.stringify({
         message: "Invalid JWT Error",
         reason,
-      }),
+      })
     );
   }
 }

@@ -1,12 +1,4 @@
-import { zValidator } from "@hono/zod-validator";
-import {
-  createHono,
-  ENV,
-  getApiEndpoint,
-  NetworkError,
-  ResponseNotOkError,
-  StoreError,
-} from "lib/constant";
+import { ENV, getApiEndpoint } from "lib/constant";
 import { fetchRequest } from "lib/request";
 import {
   TokenRequest,
@@ -18,6 +10,8 @@ import { DBUsers } from "lib/types/db";
 import { customValidator } from "lib/types/validator";
 import { Store } from "lib/store";
 import { z } from "zod";
+import { stateManager } from "lib/state";
+import { publicProcedure, router } from "trpc";
 
 async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
   const tokenEndpoint = `https://login.microsoftonline.com/${env.TENANT_ID}/oauth2/v2.0/token`;
@@ -55,58 +49,31 @@ async function requestUserInfo(accessToken: string): Promise<UserInfoResponse> {
   );
 }
 
-const auth = createHono().post(
-  "/",
-  zValidator(
-    "json",
-    z.object({
-      code: z.string(),
-    })
-  ),
-  async (ctx) => {
-    let tokenRequest: TokenResponse | undefined;
-    let userInfo: UserInfoResponse | undefined;
+export const authRouter = router({
+  credential: publicProcedure
+    .input(z.object({ code: z.string() }))
+    .query(async ({ input: { code } }) => {
+      const env = stateManager.getEnv();
 
-    try {
-      tokenRequest = await requestTokens(ctx.env, ctx.req.valid("json").code);
-      console.log({ tokenRequest });
+      let tokenRequest: TokenResponse | undefined;
+      let userInfo: UserInfoResponse | undefined;
+
+      tokenRequest = await requestTokens(env, code);
       userInfo = await requestUserInfo(tokenRequest.access_token);
-      console.log({ userInfo });
-    } catch (err) {
-      if (err instanceof ResponseNotOkError) {
-        return ctx.json(JSON.parse(err.message), 400);
-      }
-      if (err instanceof NetworkError) {
-        return ctx.json(JSON.parse(err.message), 500);
-      }
-      return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
-    }
 
-    const credential = await new Jwt(ctx.env).create(userInfo.id);
-    const nowUnix = Math.floor(Date.now() / 1000);
+      const credential = await new Jwt(env).create(userInfo.id);
+      const nowUnix = Math.floor(Date.now() / 1000);
 
-    const user: DBUsers = {
-      uuid: userInfo.id,
-      access_token: tokenRequest.access_token,
-      expires_at: nowUnix + tokenRequest.expires_in,
-      refresh_token: tokenRequest.refresh_token,
-    };
+      const user: DBUsers = {
+        uuid: userInfo.id,
+        access_token: tokenRequest.access_token,
+        expires_at: nowUnix + tokenRequest.expires_in,
+        refresh_token: tokenRequest.refresh_token,
+      };
 
-    customValidator.db.user_credential.parse(user);
+      customValidator.db.user_credential.parse(user);
+      await new Store(env.DB, userInfo.id).putUser(user);
 
-    try {
-      await new Store(ctx.env.DB, userInfo.id).putUser(user);
-    } catch (err) {
-      if (err instanceof StoreError) {
-        return ctx.json(JSON.parse(err.message), {
-          status: err.status ?? 500,
-        });
-      }
-      return ctx.json({ message: "Unknown error", reason: String(err) }, 500);
-    }
-
-    return ctx.jsonT({ credential }, 200);
-  }
-);
-
-export { auth };
+      return credential;
+    }),
+});
