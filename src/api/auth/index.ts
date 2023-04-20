@@ -49,7 +49,7 @@ async function requestUserInfo(accessToken: string): Promise<UserInfoResponse> {
   );
 }
 
-export const authRouter = router({
+export const auth = router({
   credential: publicProcedure
     .input(z.object({ code: z.string() }))
     .query(async ({ input: { code } }) => {

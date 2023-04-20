@@ -1,17 +1,14 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 import { JwtPayload } from "@tsndr/cloudflare-worker-jwt";
-import { authRouter } from "api/auth";
 import { InvalidJwtError } from "lib/constant";
 import { Jwt } from "lib/jwt";
 import { stateManager } from "lib/state";
-
 const t = initTRPC.create();
 
-const router = t.router;
-const middleware = t.middleware;
-const publicProcedure = t.procedure;
-const margeRouters = t.mergeRouters;
-
+export const middleware = t.middleware;
+export const router = t.router;
+export const mergeRouter = t.mergeRouters;
+export const publicProcedure = t.procedure;
 const isAuth = middleware(async ({ ctx, next }) => {
   console.log("fetchCreateContext");
   const bearer = stateManager.get().bearer;
@@ -43,14 +40,4 @@ const isAuth = middleware(async ({ ctx, next }) => {
   });
 });
 
-const protectedProcedure = t.procedure.use(isAuth);
-
-const appRouter = router({
-  hello: publicProcedure.query(() => "hello"),
-  auth: authRouter,
-});
-
-type AppRouter = typeof appRouter;
-
-export { appRouter, router, middleware, publicProcedure, protectedProcedure };
-export type { AppRouter };
+export const protectedProcedure = t.procedure.use(isAuth);
