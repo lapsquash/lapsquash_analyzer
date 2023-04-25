@@ -1,7 +1,7 @@
 import { me } from "api/me";
-import { mergeRouter, router } from "./trpc";
+import { router } from "./trpc";
 import { auth } from "api/auth";
 
-export const appRouter = mergeRouter(auth, me);
+export const appRouter = router({ auth, me });
 
 export type AppRouter = typeof appRouter;

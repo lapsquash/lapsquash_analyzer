@@ -1,8 +1,8 @@
 import { StoreError } from "./constant";
-import { DBUsers } from "./types/db";
+import { type DBUsers } from "./types/db";
 
 export class Store {
-  constructor(private db: D1Database, private uuid: string) {}
+  constructor(private readonly db: D1Database, private readonly uuid: string) {}
 
   private async userExists(uuid: string): Promise<boolean> {
     let existsResult: D1Result | undefined;
@@ -64,7 +64,7 @@ export class Store {
       );
     }
 
-    if (!userResult) {
+    if (userResult == null) {
       throw new StoreError("Uuid not found", 403);
     }
 

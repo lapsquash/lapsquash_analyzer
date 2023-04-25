@@ -1,19 +1,20 @@
+import { type inferAsyncReturnType } from "@trpc/server";
+import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import { InvalidJwtError } from "./constant";
 import { Jwt } from "./jwt";
 import { stateManager } from "./state";
-import { InvalidJwtError } from "./constant";
-import { JwtPayload } from "./types/res_req";
-import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { TRPCError, inferAsyncReturnType, initTRPC } from "@trpc/server";
 
-async function createContext({ req, resHeaders }: FetchCreateContextFnOptions) {
+async function createContext({
+  req,
+  resHeaders,
+}: FetchCreateContextFnOptions): Promise<{ uuid: string | undefined }> {
   console.log("fetchCreateContext");
   const bearer = req.headers.get("Authorization")?.split(" ")[1];
-  if (!bearer) return { uuid: undefined };
+  if (bearer == null) return { uuid: undefined };
 
   const jwt = new Jwt(stateManager.getEnv());
-  let payload: JwtPayload | undefined;
   try {
-    payload = await jwt.decode(bearer);
+    await jwt.decode(bearer);
   } catch (err) {
     if (err instanceof InvalidJwtError) {
       console.log("hey");
@@ -22,16 +23,10 @@ async function createContext({ req, resHeaders }: FetchCreateContextFnOptions) {
   }
 
   const uuid = await jwt.toUuid(bearer);
-  stateManager.set({ uuid });
-
   return { uuid };
 }
 
 type Context = inferAsyncReturnType<typeof createContext>;
 
-function createRouter() {
-  return;
-}
-
-export { createContext, createRouter };
+export { createContext };
 export type { Context };

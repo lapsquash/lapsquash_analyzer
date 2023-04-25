@@ -1,6 +1,7 @@
-import { z } from "zod";
-import { customValidator } from "./validator";
+import { type z } from "zod";
+import { type customValidator } from "./validator";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type TokenRequest = {
   client_id: string;
   scope: "offline_access user.read Sites.ReadWrite.All";
@@ -17,7 +18,7 @@ type TokenResponse = {
   ext_expires_in: number;
   access_token: string;
   refresh_token: string;
-};
+}
 
 type UserInfoResponse = {
   "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users/$entity";
@@ -32,8 +33,8 @@ type UserInfoResponse = {
   preferredLanguage: string | undefined;
   surname: string | undefined;
   userPrincipalName: string;
-};
+}
 
-type JwtPayload = z.infer<typeof customValidator["jwtPayload"]>;
+type JwtPayload = z.infer<(typeof customValidator)["jwtPayload"]>;
 
 export type { TokenRequest, TokenResponse, UserInfoResponse, JwtPayload };

@@ -1,10 +1,9 @@
+import { TRPCError } from "@trpc/server";
 import { getApiEndpoint, NetworkError, ResponseNotOkError } from "lib/constant";
 import { fetchRequestFromUuid } from "lib/request";
 import { Store } from "lib/store";
-import { UserInfoResponse } from "lib/types/res_req";
-import { stateManager } from "lib/state";
+import { type UserInfoResponse } from "lib/types/res_req";
 import { protectedProcedure, router } from "trpc";
-import { TRPCError } from "@trpc/server";
 
 async function requestUserInfo(
   db: D1Database,
@@ -51,7 +50,7 @@ export const me = router({
       }
     }
 
-    if (!userInfo) {
+    if (userInfo == null) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to get user info",

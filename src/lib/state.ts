@@ -1,25 +1,25 @@
-import { ENV } from "./constant";
+import { type ENV } from "./constant";
 
-interface State {
+type State = {
   uuid?: string;
   env?: ENV;
   bearer?: string;
-}
+};
 
 class StateManager {
   private state: State = {};
 
-  public get() {
+  public get(): State {
     return this.state;
   }
 
-  public getEnv() {
+  public getEnv(): ENV {
     const env = this.state.env;
-    if (!env) throw new Error("env is not set");
+    if (env == null) throw new Error("env is not set");
     return env;
   }
 
-  public set(newState: State) {
+  public set(newState: State): void {
     this.state = newState;
   }
 }

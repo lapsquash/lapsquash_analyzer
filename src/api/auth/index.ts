@@ -1,17 +1,17 @@
-import { ENV, getApiEndpoint } from "lib/constant";
-import { fetchRequest } from "lib/request";
-import {
-  TokenRequest,
-  TokenResponse,
-  UserInfoResponse,
-} from "lib/types/res_req";
+import { getApiEndpoint, type ENV } from "lib/constant";
 import { Jwt } from "lib/jwt";
-import { DBUsers } from "lib/types/db";
-import { customValidator } from "lib/types/validator";
-import { Store } from "lib/store";
-import { z } from "zod";
+import { fetchRequest } from "lib/request";
 import { stateManager } from "lib/state";
+import { Store } from "lib/store";
+import { type DBUsers } from "lib/types/db";
+import {
+  type TokenRequest,
+  type TokenResponse,
+  type UserInfoResponse,
+} from "lib/types/res_req";
+import { customValidator } from "lib/types/validator";
 import { publicProcedure, router } from "trpc";
+import { z } from "zod";
 
 async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
   const tokenEndpoint = `https://login.microsoftonline.com/${env.TENANT_ID}/oauth2/v2.0/token`;
@@ -55,11 +55,8 @@ export const auth = router({
     .query(async ({ input: { code } }) => {
       const env = stateManager.getEnv();
 
-      let tokenRequest: TokenResponse | undefined;
-      let userInfo: UserInfoResponse | undefined;
-
-      tokenRequest = await requestTokens(env, code);
-      userInfo = await requestUserInfo(tokenRequest.access_token);
+      const tokenRequest = await requestTokens(env, code);
+      const userInfo = await requestUserInfo(tokenRequest.access_token);
 
       const credential = await new Jwt(env).create(userInfo.id);
       const nowUnix = Math.floor(Date.now() / 1000);

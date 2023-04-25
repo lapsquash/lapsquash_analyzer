@@ -1,10 +1,10 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
-import { ENV, InvalidJwtError } from "./constant";
-import { JwtPayload } from "./types/res_req";
+import { type ENV, InvalidJwtError } from "./constant";
+import { type JwtPayload } from "./types/res_req";
 import { customValidator } from "./types/validator";
 
 export class Jwt {
-  constructor(private env: ENV) {}
+  constructor(private readonly env: ENV) {}
 
   async create(uuid: string): Promise<string> {
     const nowUnix = Math.floor(Date.now() / 1000);

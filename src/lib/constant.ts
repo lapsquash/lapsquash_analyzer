@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { z } from "zod";
+import { type z } from "zod";
 
 type ENV = {
   DB: D1Database;
@@ -16,14 +16,18 @@ type toZod<T extends Record<string, any>> = {
 
 type valueOf<T> = T[keyof T];
 
-const createHono = () => new Hono<{ Bindings: ENV }>();
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function createHono() {
+  return new Hono<{ Bindings: ENV }>();
+}
 
-const getApiEndpoint = (path: string) =>
-  "https://graph.microsoft.com/v1.0" + path;
+function getApiEndpoint(path: string): string {
+  return "https://graph.microsoft.com/v1.0" + path;
+}
 
 class NetworkError extends Error {
   constructor(reason: string) {
-    super(JSON.stringify({ message: "Network Error", reason: reason }));
+    super(JSON.stringify({ message: "Network Error", reason }));
   }
 }
 

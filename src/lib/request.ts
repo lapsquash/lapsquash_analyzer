@@ -1,5 +1,5 @@
 import { NetworkError, ResponseNotOkError } from "./constant";
-import { Store } from "./store";
+import { type Store } from "./store";
 
 type FetchArgs = Parameters<typeof fetch>;
 
