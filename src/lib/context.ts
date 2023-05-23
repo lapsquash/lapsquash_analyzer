@@ -1,32 +1,18 @@
-import { type inferAsyncReturnType } from "@trpc/server";
 import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { InvalidJwtError } from "./constant";
-import { Jwt } from "./jwt";
+import { type ENV } from "./constant";
 import { stateManager } from "./state";
 
-async function createContext({
+export type Context = {
+  env: ENV;
+  bearer?: string;
+};
+
+export function createContext({
   req,
   resHeaders,
-}: FetchCreateContextFnOptions): Promise<{ uuid: string | undefined }> {
+}: FetchCreateContextFnOptions): Context {
   console.log("fetchCreateContext");
-  const bearer = req.headers.get("Authorization")?.split(" ")[1];
-  if (bearer == null) return { uuid: undefined };
-
-  const jwt = new Jwt(stateManager.getEnv());
-  try {
-    await jwt.decode(bearer);
-  } catch (err) {
-    if (err instanceof InvalidJwtError) {
-      console.log("hey");
-      return { uuid: undefined };
-    }
-  }
-
-  const uuid = await jwt.toUuid(bearer);
-  return { uuid };
+  const bearer = req.headers.get("authorization") ?? undefined;
+  const env = stateManager.getEnv();
+  return { env, bearer };
 }
-
-type Context = inferAsyncReturnType<typeof createContext>;
-
-export { createContext };
-export type { Context };
