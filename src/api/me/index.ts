@@ -3,7 +3,8 @@ import { getApiEndpoint, NetworkError, ResponseNotOkError } from "lib/constant";
 import { fetchRequestFromUuid } from "lib/request";
 import { Store } from "lib/store";
 import { type UserInfoResponse } from "lib/types/res_req";
-import { protectedProcedure, router } from "trpc";
+import { protectedProcedure } from "procedures";
+import { router } from "trpc";
 
 async function requestUserInfo(
   db: D1Database,

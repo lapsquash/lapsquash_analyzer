@@ -11,8 +11,7 @@ export function createContext({
   req,
   resHeaders,
 }: FetchCreateContextFnOptions): Context {
-  console.log("fetchCreateContext");
-  const bearer = req.headers.get("authorization") ?? undefined;
+  const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
   const env = stateManager.getEnv();
   return { env, bearer };
 }

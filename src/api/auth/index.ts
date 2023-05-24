@@ -1,7 +1,6 @@
 import { getApiEndpoint, type ENV } from "lib/constant";
 import { Jwt } from "lib/jwt";
 import { fetchRequest } from "lib/request";
-import { stateManager } from "lib/state";
 import { Store } from "lib/store";
 import { type DBUsers } from "lib/types/db";
 import {
@@ -10,7 +9,8 @@ import {
   type UserInfoResponse,
 } from "lib/types/res_req";
 import { customValidator } from "lib/types/validator";
-import { publicProcedure, router } from "trpc";
+import { publicProcedure } from "procedures";
+import { router } from "trpc";
 import { z } from "zod";
 
 async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
@@ -50,12 +50,14 @@ async function requestUserInfo(accessToken: string): Promise<UserInfoResponse> {
 }
 
 export const auth = router({
-  credential: publicProcedure
+  getCredential: publicProcedure
     .input(z.object({ code: z.string() }))
-    .query(async ({ input: { code } }) => {
-      const env = stateManager.getEnv();
+    .query(async (opts) => {
+      const { env } = opts.ctx;
 
-      const tokenRequest = await requestTokens(env, code);
+      console.log({ code: opts.input.code });
+
+      const tokenRequest = await requestTokens(env, opts.input.code);
       const userInfo = await requestUserInfo(tokenRequest.access_token);
 
       const credential = await new Jwt(env).create(userInfo.id);

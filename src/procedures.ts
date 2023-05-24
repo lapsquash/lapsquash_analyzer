@@ -1,12 +1,36 @@
+import { TRPCError } from "@trpc/server";
+import { InvalidJwtError } from "lib/constant";
+import { Jwt } from "lib/jwt";
 import { middleware, procedure } from "trpc";
 
-export const checkCredential = middleware(async (opts) => {
-  console.log("checkCredential");
+export const isAuthorized = middleware(async (opts) => {
+  const bearer = opts.ctx.bearer;
+
+  if (bearer == null) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Bearer token not found",
+    });
+  }
+
+  const jwt = new Jwt(opts.ctx.env);
+  try {
+    await jwt.decode(bearer);
+  } catch (err) {
+    if (err instanceof InvalidJwtError) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Invalid bearer token",
+      });
+    }
+  }
+
+  const uuid = await jwt.toUuid(bearer);
 
   return await opts.next({
     ctx: {
       ...opts.ctx,
-      uuid: "123",
+      uuid,
     },
   });
 });
@@ -26,4 +50,4 @@ export const checkProjectId = middleware(async (opts) => {
 export const publicProcedure = procedure;
 
 // protected
-export const protectedProcedure = procedure.use(checkCredential);
+export const protectedProcedure = procedure.use(isAuthorized);
