@@ -1,40 +1,42 @@
-import { type z } from "zod";
-import { type customValidator } from "./validator";
+import { z } from "zod";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type TokenRequest = {
-  client_id: string;
-  scope: "offline_access user.read Sites.ReadWrite.All";
-  code: string;
-  redirect_uri: string;
-  grant_type: "authorization_code";
-  client_secret: string;
+export const reqValidator = {
+  tokenRequest: z.object({
+    client_id: z.string(),
+    scope: z.literal("offline_access user.read Sites.ReadWrite.All"),
+    code: z.string(),
+    redirect_uri: z.string(),
+    grant_type: z.literal("authorization_code"),
+    client_secret: z.string(),
+  }),
 };
 
-type TokenResponse = {
-  token_type: "Bearer";
-  scope: string;
-  expires_in: number;
-  ext_expires_in: number;
-  access_token: string;
-  refresh_token: string;
-}
-
-type UserInfoResponse = {
-  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users/$entity";
-  businessPhones: number[];
-  displayName: string[];
-  givenName: string | undefined;
-  id: string;
-  jobTitle: string | undefined;
-  mail: string;
-  mobilePhone: string | undefined;
-  officeLocation: string | undefined;
-  preferredLanguage: string | undefined;
-  surname: string | undefined;
-  userPrincipalName: string;
-}
-
-type JwtPayload = z.infer<(typeof customValidator)["jwtPayload"]>;
-
-export type { TokenRequest, TokenResponse, UserInfoResponse, JwtPayload };
+export const resValidator = {
+  tokenResponse: z.object({
+    token_type: z.literal("Bearer"),
+    scope: z.string(),
+    expires_in: z.number(),
+    ext_expires_in: z.number(),
+    access_token: z.string(),
+    refresh_token: z.string(),
+  }),
+  userInfoResponse: z.object({
+    businessPhones: z.array(z.number()),
+    displayName: z.array(z.string()),
+    givenName: z.string().optional(),
+    id: z.string(),
+    jobTitle: z.string().optional(),
+    mail: z.string(),
+    mobilePhone: z.string().optional(),
+    officeLocation: z.string().optional(),
+    preferredLanguage: z.string().optional(),
+    surname: z.string().optional(),
+    userPrincipalName: z.string(),
+  }),
+  photoMetaResponse: z.object({
+    "@odata.mediaContentType": z.enum(["image/jpeg", "image/png"]),
+    id: z.literal("default"),
+    height: z.number(),
+    width: z.number(),
+  }),
+};

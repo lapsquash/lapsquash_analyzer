@@ -3,20 +3,19 @@ import { Jwt } from "lib/jwt";
 import { fetchRequest } from "lib/request";
 import { Store } from "lib/store";
 import { type DBUsers } from "lib/types/db";
-import {
-  type TokenRequest,
-  type TokenResponse,
-  type UserInfoResponse,
-} from "lib/types/res_req";
+import { type reqValidator, type resValidator } from "lib/types/res_req";
 import { customValidator } from "lib/types/validator";
 import { publicProcedure } from "procedures";
 import { router } from "trpc";
 import { z } from "zod";
 
-async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
+async function requestTokens(
+  env: ENV,
+  code: string
+): Promise<z.infer<(typeof resValidator)["tokenResponse"]>> {
   const tokenEndpoint = `https://login.microsoftonline.com/${env.TENANT_ID}/oauth2/v2.0/token`;
 
-  const body: TokenRequest = {
+  const body: z.infer<(typeof reqValidator)["tokenRequest"]> = {
     client_id: env.CLIENT_ID,
     scope: "offline_access user.read Sites.ReadWrite.All",
     code,
@@ -25,7 +24,7 @@ async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
     client_secret: env.CLIENT_SECRET,
   };
 
-  return await fetchRequest<TokenResponse>(
+  return await fetchRequest(
     [
       tokenEndpoint,
       {
@@ -40,7 +39,9 @@ async function requestTokens(env: ENV, code: string): Promise<TokenResponse> {
   );
 }
 
-async function requestUserInfo(accessToken: string): Promise<UserInfoResponse> {
+async function requestUserInfo(
+  accessToken: string
+): Promise<z.infer<(typeof resValidator)["userInfoResponse"]>> {
   const userInfoEndpoint = getApiEndpoint("/me");
 
   return await fetchRequest(
@@ -52,10 +53,9 @@ async function requestUserInfo(accessToken: string): Promise<UserInfoResponse> {
 export const auth = router({
   getCredential: publicProcedure
     .input(z.object({ code: z.string() }))
+    .output(z.string())
     .query(async (opts) => {
       const { env } = opts.ctx;
-
-      console.log({ code: opts.input.code });
 
       const tokenRequest = await requestTokens(env, opts.input.code);
       const userInfo = await requestUserInfo(tokenRequest.access_token);

@@ -26,10 +26,7 @@ async function fetchRequestFromUuid(
 ): Promise<Response> | never {
   const accessToken = (await store.getUserData()).access_token;
 
-  if (fetchArg[1] === undefined) {
-    fetchArg[1] = {};
-  }
-
+  fetchArg[1] ??= {};
   fetchArg[1].headers = {
     ...fetchArg[1].headers,
     Authorization: `Bearer ${accessToken}`,

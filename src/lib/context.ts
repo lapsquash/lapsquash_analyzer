@@ -7,10 +7,7 @@ export type Context = {
   bearer?: string;
 };
 
-export function createContext({
-  req,
-  resHeaders,
-}: FetchCreateContextFnOptions): Context {
+export function createContext({ req }: FetchCreateContextFnOptions): Context {
   const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
   const env = stateManager.getEnv();
   return { env, bearer };
