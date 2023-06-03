@@ -1,7 +1,9 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
-import { type ENV, InvalidJwtError } from "./constant";
-import { type JwtPayload } from "./types/res_req";
+import { type z } from "zod";
+import { InvalidJwtError, type ENV } from "./constant";
 import { customValidator } from "./types/validator";
+
+type JwtPayload = z.infer<typeof customValidator.jwtPayload>;
 
 export class Jwt {
   constructor(private readonly env: ENV) {}

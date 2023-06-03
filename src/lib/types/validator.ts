@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const customValidator = {
+export const customValidator = {
   jwtPayload: z.object({
     iss: z.string(),
     sub: z.string(),
@@ -16,5 +16,3 @@ const customValidator = {
     }),
   },
 };
-
-export { customValidator };
