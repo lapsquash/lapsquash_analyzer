@@ -4,7 +4,7 @@ import { stateManager } from "./state";
 
 export type Context = {
   env: ENV;
-  bearer?: string;
+  bearer: string | undefined;
 };
 
 export function createContext({ req }: FetchCreateContextFnOptions): Context {
