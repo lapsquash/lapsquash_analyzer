@@ -15,7 +15,6 @@ export const me = router({
         [getApiEndpoint("/me")],
         "User info request failed"
       );
-
       return await response.json();
     }),
 

@@ -19,7 +19,7 @@ async function requestTokens(
     client_id: env.CLIENT_ID,
     scope: "offline_access user.read Sites.ReadWrite.All",
     code,
-    redirect_uri: "http://localhost:8787/callback",
+    redirect_uri: "http://localhost:3000/callback",
     grant_type: "authorization_code",
     client_secret: env.CLIENT_SECRET,
   };
