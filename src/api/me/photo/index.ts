@@ -7,7 +7,7 @@ import { router } from "trpc";
 
 export const photo = router({
   meta: protectedProcedure
-    .output(resValidator.photoMetaResponse)
+    .output(resValidator.photoMeta)
     .query(async (opts) => {
       const response = await fetchRequestFromUuid(
         new Store(opts.ctx.env.DB, opts.ctx.uuid),
@@ -15,7 +15,7 @@ export const photo = router({
         "User photo request failed"
       );
 
-      return await response.json();
+      return response.json();
     }),
 
   content: protectedProcedure.query<ArrayBuffer>(async (opts) => {
@@ -25,6 +25,6 @@ export const photo = router({
       "User photo request failed"
     );
 
-    return await response.arrayBuffer();
+    return response.arrayBuffer();
   }),
 });

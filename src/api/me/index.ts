@@ -7,16 +7,14 @@ import { router } from "trpc";
 import { photo } from "./photo";
 
 export const me = router({
-  info: protectedProcedure
-    .output(resValidator.userInfoResponse)
-    .query(async (opts) => {
-      const response = await fetchRequestFromUuid(
-        new Store(opts.ctx.env.DB, opts.ctx.uuid),
-        [getApiEndpoint("/me")],
-        "User info request failed"
-      );
-      return await response.json();
-    }),
+  info: protectedProcedure.output(resValidator.userInfo).query(async (opts) => {
+    const response = await fetchRequestFromUuid(
+      new Store(opts.ctx.env.DB, opts.ctx.uuid),
+      [getApiEndpoint("/me")],
+      "User info request failed"
+    );
+    return response.json();
+  }),
 
   photo,
 });

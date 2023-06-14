@@ -12,10 +12,10 @@ import { z } from "zod";
 async function requestTokens(
   env: ENV,
   code: string
-): Promise<z.infer<(typeof resValidator)["tokenResponse"]>> {
+): Promise<z.infer<(typeof resValidator)["token"]>> {
   const tokenEndpoint = `https://login.microsoftonline.com/${env.TENANT_ID}/oauth2/v2.0/token`;
 
-  const body: z.infer<(typeof reqValidator)["tokenRequest"]> = {
+  const body: z.infer<(typeof reqValidator)["token"]> = {
     client_id: env.CLIENT_ID,
     scope: "offline_access user.read Sites.ReadWrite.All",
     code,
@@ -24,7 +24,7 @@ async function requestTokens(
     client_secret: env.CLIENT_SECRET,
   };
 
-  return await fetchRequest(
+  return fetchRequest(
     [
       tokenEndpoint,
       {
@@ -41,10 +41,10 @@ async function requestTokens(
 
 async function requestUserInfo(
   accessToken: string
-): Promise<z.infer<(typeof resValidator)["userInfoResponse"]>> {
+): Promise<z.infer<(typeof resValidator)["userInfo"]>> {
   const userInfoEndpoint = getApiEndpoint("/me");
 
-  return await fetchRequest(
+  return fetchRequest(
     [userInfoEndpoint, { headers: { Authorization: `Bearer ${accessToken}` } }],
     "User info request failed"
   );
@@ -66,7 +66,7 @@ export const auth = router({
       const user: DBUsers = {
         uuid: userInfo.id,
         access_token: tokenRequest.access_token,
-        expires_at: nowUnix + tokenRequest.expires_in,
+        expires_at: nowUnix + Number(tokenRequest.expires_in),
         refresh_token: tokenRequest.refresh_token,
       };
 
