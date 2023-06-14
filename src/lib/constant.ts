@@ -7,6 +7,7 @@ type ENV = {
   CLIENT_ID: string;
   CLIENT_SECRET: string;
   TENANT_ID: string;
+  DRIVE_ID: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,9 +22,8 @@ function createHono() {
   return new Hono<{ Bindings: ENV }>();
 }
 
-function getApiEndpoint(path: string): string {
-  return "https://graph.microsoft.com/v1.0" + path;
-}
+const getApiEndpoint = (path: string): string =>
+  "https://graph.microsoft.com/v1.0" + path;
 
 class NetworkError extends Error {
   constructor(reason: string) {
@@ -55,11 +55,11 @@ class StoreError extends Error {
 }
 
 export {
+  InvalidJwtError,
+  NetworkError,
+  ResponseNotOkError,
+  StoreError,
   createHono,
   getApiEndpoint,
-  NetworkError,
-  StoreError,
-  ResponseNotOkError,
-  InvalidJwtError,
 };
 export type { ENV, toZod, valueOf };
