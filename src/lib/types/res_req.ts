@@ -7,7 +7,6 @@ export const reqValidator = {
     code: z.string(),
     redirect_uri: z.string(),
     grant_type: z.literal("authorization_code"),
-    client_secret: z.string(),
   }),
 };
 

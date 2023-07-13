@@ -11,17 +11,19 @@ import { z } from "zod";
 
 async function requestTokens(
   env: ENV,
+  redirectUri: string,
   code: string
 ): Promise<z.infer<(typeof resValidator)["token"]>> {
-  const tokenEndpoint = `https://login.microsoftonline.com/${env.TENANT_ID}/oauth2/v2.0/token`;
+  const tokenEndpoint = `https://login.microsoftonline.com/${String(
+    env.TENANT_ID
+  )}/oauth2/v2.0/token`;
 
   const body: z.infer<(typeof reqValidator)["token"]> = {
     client_id: env.CLIENT_ID,
     scope: "offline_access user.read Sites.ReadWrite.All",
     code,
-    redirect_uri: "http://localhost:3000/callback",
+    redirect_uri: redirectUri,
     grant_type: "authorization_code",
-    client_secret: env.CLIENT_SECRET,
   };
 
   return fetchRequest(
@@ -52,12 +54,16 @@ async function requestUserInfo(
 
 export const auth = router({
   getCredential: publicProcedure
-    .input(z.object({ code: z.string() }))
+    .input(z.object({ code: z.string(), redirectUri: z.string() }))
     .output(z.string())
     .query(async (opts) => {
       const { env } = opts.ctx;
 
-      const tokenRequest = await requestTokens(env, opts.input.code);
+      const tokenRequest = await requestTokens(
+        env,
+        opts.input.redirectUri,
+        opts.input.code
+      );
       const userInfo = await requestUserInfo(tokenRequest.access_token);
 
       const credential = await new Jwt(env).create(userInfo.id);

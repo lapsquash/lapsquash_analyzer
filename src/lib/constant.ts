@@ -5,7 +5,6 @@ type ENV = {
   DB: D1Database;
   HOST_URL: string;
   CLIENT_ID: string;
-  CLIENT_SECRET: string;
   TENANT_ID: string;
   DRIVE_ID: string;
 };
